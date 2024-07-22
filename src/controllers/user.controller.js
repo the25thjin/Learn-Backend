@@ -283,7 +283,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Username is required");
   }
   const channel =
-    User.aggregate[
+    User.aggregate([
       {
         $match: {
           username: username?.toLowerCase(),
@@ -334,7 +334,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
             email: 1
         }
       }
-    ];
+    ]);
     if(!channel.length){
         throw new ApiError(400 ,"Channel doesnt exist")
     }
