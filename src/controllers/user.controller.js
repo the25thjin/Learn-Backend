@@ -181,7 +181,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   if (!user) {
     throw new ApiError(401, "Invalid user");
   }
-  if (incomingRefreshToken !== decodedToken) {
+  if (incomingRefreshToken !== user.refreshToken) {
     throw new ApiError(401, "Your refresh token is expired or invalid");
   }
   const options = { httpOnly: true, secure: true };
@@ -204,7 +204,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   const { oldPassword, newPassword } = req.body;
 
   const user = await User.findById(req.user._id);
-  const isPasswordCorrect = user.isPasswordCorrect(oldPassword);
+  const isPasswordCorrect = await  user.isPasswordCorrect(oldPassword);
 
   if (!isPasswordCorrect) {
     throw new ApiError(400, "Incorrect old password ");
@@ -221,7 +221,7 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 const updateAccountDetails = asyncHandler(async (req, res) => {
   const { email, fullName } = req.body;
   if (!fullName || !email) {
-    throw new ApiError(400, "All field are required");
+    throw new ApiError(400, "Atleast one field is required");
   }
   const user = await User.findByIdAndUpdate(
     req.user._id,
@@ -283,7 +283,7 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
   if (!username.trim()) {
     throw new ApiError(400, "Username is required");
   }
-  const channel =
+  const channel = await
     User.aggregate([
       {
         $match: {
@@ -337,16 +337,16 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
       }
     ]);
     if(!channel.length){
-        throw new ApiError(400 ,"Channel doesnt exist")
+        throw new ApiError(404 ,"Channel doesnt exist")
     }
     return res.status(200).json(new ApiResponse(200,channel[0],"User channel fetched successfully"))
 });
 
 const getWatchHistory = asyncHandler(async(req,res)=>{
-    const user = User.aggregate([
+    const user = await User.aggregate([
        {
         $match:{
-            _id : mongoose.Types.ObjectId(req.user._id)
+            _id : new mongoose.Types.ObjectId(req.user._id)
         }
        },
        {
