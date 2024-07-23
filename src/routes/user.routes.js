@@ -29,9 +29,10 @@ router.route("/register").post(
 );
 router.route("/login").post(loginUser);
 router.route("/logout").post(verifyJWT, logoutUser);
+
 router.route("/refresh-access-token").post(refreshAccessToken)
 router.route("/change-password").post(verifyJWT,changeCurrentPassword)
-router.route("/current-user").get(getCurrentUser)
+router.route("/current-user").get(verifyJWT,getCurrentUser)
 router.route("/change-details").post(verifyJWT,updateAccountDetails)
 
 router.route("/update-avatar").post(verifyJWT,upload.single("avatar"),updateUserAvatar)
