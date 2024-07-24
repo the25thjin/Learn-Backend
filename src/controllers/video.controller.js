@@ -8,7 +8,7 @@ import {uploadCloudinary} from "../utils/cloudinary.js"
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
+    let { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
     //TODO: get all videos based on query, sort, pagination
 //parse
     page = parseInt(page,10)
@@ -24,7 +24,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
     }}
     pipeline.push({
         $match:{
-            owner: mongoose.Types.ObjectId(userId)
+            owner: new mongoose.Types.ObjectId(userId)
         }
     })
 
@@ -112,7 +112,12 @@ const getVideoById = asyncHandler(async (req, res) => {
     if(!videoId){
         throw new ApiError(400,"videoID is required")
     }
-    
+    const video = await Video.findById(videoId)
+    if(!video || (!video.isPublished() && !(video.owner.toString() == req.user._id.toString() )))
+    {
+        throw new ApiError(400, "Video not found")
+    }
+    res.status(200).json(200,video,"Video fetched successfully")
 })
 
 const updateVideo = asyncHandler(async (req, res) => {
