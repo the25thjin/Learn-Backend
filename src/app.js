@@ -1,5 +1,5 @@
 // import mongoose from "mongoose"; 
-import express, { urlencoded } from 'express';
+import express,  {urlencoded}  from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 const app = express();
@@ -18,8 +18,9 @@ app.use(cookieParser())
 
 //importing routes
 import userRouter from './routes/user.routes.js';
-
+import videoRouter from './routes/video.routes.js'
 //routes declaration
 app.use("/api/v1/users",userRouter)
+app.use("/api/v1/videos",videoRouter)
 
 export {app}
