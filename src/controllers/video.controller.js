@@ -6,7 +6,13 @@ import {ApiResponse} from "../utils/apiResponse.js"
 import {asyncHandler} from "../utils/asyncHandler.js"
 import {uploadCloudinary} from "../utils/cloudinary.js"
 
-
+const isUSerOwner = async(videoId,req)=>{
+    const video = await Video.findById(videoId)
+    if(req.user._id.toString() == video?.owner.toString()){
+        return true
+    }
+    return false
+}
 const getAllVideos = asyncHandler(async (req, res) => {
     let { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
     //TODO: get all videos based on query, sort, pagination
@@ -113,7 +119,7 @@ const getVideoById = asyncHandler(async (req, res) => {
         throw new ApiError(400,"videoID is required")
     }
     const video = await Video.findById(videoId)
-    if(!video || (!video.isPublished() && !(video.owner.toString() == req.user._id.toString() )))
+    if(!video || (!video.isPublished && !(video?.owner.toString() == req.user?._id.toString() )))
     {
         throw new ApiError(400, "Video not found")
     }
@@ -123,16 +129,73 @@ const getVideoById = asyncHandler(async (req, res) => {
 const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: update video details like title, description, thumbnail
+    if(!videoId){
+        throw new ApiError(400, "Video id required")
+    }
+    const authorized = await isUSerOwner(videoId,req)
+    if(!authorized){
+        throw new ApiError(400, "unauthorised request")
+    }
+    const {title , description } = req.body
+    if(!title && !description ){
+        throw new ApiError(400, "One of the field is required")
+    }
+    const video = await Video.findByIdAndUpdate(videoId, {
+        $set:{
+            title , description
+        }
+    },{
+        new : true
+    })
+    if(!video){
+        throw new ApiError(400, "Error while updating")
+    }
+    return res.status(200).json(new ApiResponse(200, video,"video updated"))
 
 })
 
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: delete video
+    if(!videoId){
+        throw new ApiError(400, "Video id required")
+    }
+    const authorized = await isUSerOwner(videoId,req)
+    if(!authorized){
+        throw new ApiError(400, "unauthorised request")
+    }
+
+    const video = await Video.findByIdAndDelete(videoId)
+    if(!video){
+        throw new ApiError(404, "error while deleting video")
+    }
+    return res.status(200).json(new ApiResponse(200, {}, "Video deleted "))
 })
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
     const { videoId } = req.params
+    if(!videoId){
+        throw new ApiError(400, "videoId is required")
+    }
+    const authorized = await isUSerOwner(videoId,req)
+    if(!authorized){
+        throw new ApiError(400, "unauthorised request")
+    }
+    const video = await Video.findById(videoId)
+    if(!video){
+        throw new ApiError(400, "video doesnt exist")
+    }
+    const toggledVideo =await  Video.findByIdAndUpdate(videoId,{
+        $set:{
+            isPublished: !video.isPublished
+        }
+    },{
+        new: true
+    })
+    if(!toggledVideo){
+        throw new ApiError(400 , "error while toggling")
+    }
+    return res.status(200).json(new ApiResponse(200,toggledVideo,"toggled"))
 })
 
 export {
