@@ -13,7 +13,7 @@ const uploadCloudinary = async (localFilePath) =>{
             return null;
         }
         else{
-            const response = await cloudinary.uploader.upload(localFilePath,{resource_type:"auto"});
+            const response = await cloudinary.uploader.upload(localFilePath,{folder:"Learn-backend", resource_type:"auto"});
             // console.log("file is uploaded on cloudinary",response)
             fs.unlinkSync(localFilePath);
             return response; 
