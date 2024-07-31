@@ -61,7 +61,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
                         if:["$owner", new mongoose.Types.ObjectId(req.user?._id)],
                         then: "$videos",
                         else:{
-                            $filer:{    
+                            $filter:{    
                                 input:"$videos",
                                 as:"video",
                                 $cond:{
@@ -207,7 +207,7 @@ const updatePlaylist = asyncHandler(async (req, res) => {
     if(!isUserOwner){
         throw new ApiError(400,"invalid authorization")
     }
-    const playlist = Playlist.findByIdAndUpdate(playlistId,{
+    const playlist = await Playlist.findByIdAndUpdate(playlistId,{
         $set:{
             name, description
         }
